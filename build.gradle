@@ -1,0 +1,124 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            name = 'sonatype-nexus-public'
+            url = 'https://oss.sonatype.org/content/repositories/public/'
+        }
+        maven {
+            name = 'forge-repo'
+            url = 'http://files.minecraftforge.net/maven/'
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.0-SNAPSHOT'
+    }
+}
+
+apply plugin: "net.minecraftforge.gradle.forge"
+apply plugin: "maven"
+
+ext.minecraftPlugin = plugins.getPlugin('net.minecraftforge.gradle.forge')
+
+group = "nl.jk5.pumpkin.sponge.hooks.impl"
+version = "1.1.0"
+
+repositories {
+    mavenCentral()
+    maven {
+        name "sponge"
+        url "http://repo.spongepowered.org/maven/"
+    }
+    maven {
+        name "forge"
+        url "http://files.minecraftforge.net/maven/"
+    }
+    maven {
+        name = 'sonatype-snapshots'
+        url = 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+}
+
+configurations {
+    deployer
+    provided
+    provided.transitive = false
+}
+
+dependencies {
+    compile project("api")
+
+    deployer "org.apache.maven.wagon:wagon-ssh:2.6"
+    provided "org.spongepowered:sponge:1.8-1515-2.1DEV-686"
+}
+
+minecraft {
+    version = "1.8-11.14.3.1515"
+    mappings = "snapshot_20151005"
+    runDir = 'run'
+    //mappings = 'snapshot_20150301'
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version': project.version
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+jar {
+    baseName = "Pumpkin-Hooks-Worlds"
+    manifest {
+        attributes "Built-By": System.getProperty("user.name")
+        attributes "Build-Jdk": System.getProperty("java.version")
+        attributes "Created-By": "Gradle " + gradle.gradleVersion
+        attributes "Implementation-Version": project.version
+        attributes "Implementation-Title": "nl.jk_5.pumpkin.sponge.hooks.worlds.impl"
+        attributes "Implementation-Vendor": "jk-5"
+    }
+}
+
+sourceSets.main.compileClasspath += [configurations.provided]
+
+idea {
+    module{
+        scopes.PROVIDED.plus += [configurations.provided]
+    }
+}
+
+sourceJar {
+    baseName = "Pumpkin-Hooks-Worlds"
+}
+
+uploadArchives {
+    if (project.hasProperty("deploymaven")) {
+        repositories.mavenDeployer {
+            configuration = configurations.deployer
+            repository(url: project.deploymaven.url) {
+                authentication(userName: project.deploymaven.username, password: project.deploymaven.password)
+            }
+            pom.project {
+                description = 'Pumpkin, the Minecraft PvP server framework'
+                url = 'https://github.com/Pumpkin-Framework'
+
+                developers {
+                    developer {
+                        id = 'jk-5'
+                        name = 'jk-5'
+                        roles {
+                            role 'developer'
+                            role 'packager'
+                        }
+                    }
+                }
+            }
+        }
+    }else{
+        repositories{
+            mavenLocal()
+        }
+    }
+}

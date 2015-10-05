@@ -1,0 +1,9 @@
+[
+  {
+    "modid": "PumpkinWorldHooks",
+    "name": "Pumpkin World Hooks",
+    "version": "${version}",
+    "description": "Additional world-specific hooks that sponge does not provide",
+    "authorList": ["jk-5"]
+  }
+]

@@ -1,0 +1,68 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'maven'
+}
+
+group = "nl.jk5.pumpkin.sponge.hooks"
+version = "1.1.0"
+
+repositories {
+    mavenCentral()
+    maven {
+        name "sponge"
+        url "http://repo.spongepowered.org/maven/"
+    }
+}
+
+configurations {
+    deployer
+}
+
+dependencies {
+    compile "org.spongepowered:spongeapi:2.1-SNAPSHOT"
+
+    deployer "org.apache.maven.wagon:wagon-ssh:2.6"
+}
+
+jar {
+    baseName = "Pumpkin-Hooks-Worlds"
+    manifest {
+        attributes "Built-By": System.getProperty("user.name")
+        attributes "Build-Jdk": System.getProperty("java.version")
+        attributes "Created-By": "Gradle " + gradle.gradleVersion
+        attributes "Implementation-Version": project.version
+        attributes "Implementation-Title": "nl.jk_5.pumpkin.sponge.hooks.worlds.api"
+        attributes "Implementation-Vendor": "jk-5"
+    }
+}
+
+uploadArchives {
+    if (project.hasProperty("deploymaven")) {
+        repositories.mavenDeployer {
+            configuration = configurations.deployer
+            repository(url: project.deploymaven.url) {
+                authentication(userName: project.deploymaven.username, password: project.deploymaven.password)
+            }
+            pom.project {
+                description = 'Pumpkin, the Minecraft PvP server framework'
+                url = 'https://github.com/Pumpkin-Framework'
+
+                developers {
+                    developer {
+                        id = 'jk-5'
+                        name = 'jk-5'
+                        roles {
+                            role 'developer'
+                            role 'packager'
+                        }
+                    }
+                }
+            }
+        }
+    }else{
+        repositories{
+            mavenLocal()
+        }
+    }
+}
